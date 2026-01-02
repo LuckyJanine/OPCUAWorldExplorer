@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Opc.Ua;
+using Opc.Ua.Configuration;
 using Opc.Ua.Server;
 using OpcUaServer;
-using System.Security.Cryptography.X509Certificates;
 
 internal class Program
 {
@@ -12,7 +12,7 @@ internal class Program
     /// </summary>
     /// <param name="args"></param>
     /// <returns></returns>
-    private static void Main(string[] args)
+    private static async Task Main(string[] args)
     {
         IConfigurationRoot rootConfig = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
@@ -22,7 +22,7 @@ internal class Program
         var options = new OpcUaOptions();
         rootConfig.GetSection("OpcUa").Bind(options);
 
-        var config = new ApplicationConfiguration()
+        var appConfig = new ApplicationConfiguration()
         {
             ApplicationName = options.ApplicationName,
             ApplicationType = ApplicationType.Server,
@@ -58,20 +58,55 @@ internal class Program
             }
         };
        
-        config.ValidateAsync(ApplicationType.Server).GetAwaiter().GetResult();
+        appConfig.ValidateAsync(ApplicationType.Server).GetAwaiter().GetResult();
 
-        Console.WriteLine("Running OPC UA Server.");
-        Console.WriteLine("Configured endpoints:");
+        //ITelemetryContext telemetry = DefaultTelemetryContext.Create();
+
+        // [Obsolete("Use ApplicationInstance(ITelemetryContext) instead.")]
+        // Can't find implementation for ITelemetryContext at the moment 
+        // "Copyright (c) 2005-2025 The OPC Foundation, Inc. All rights reserved."
+        // have to go with this Obsolete Constructor
+        var appInstance = new ApplicationInstance();
+        appInstance.ApplicationConfiguration = appConfig;
+
+        await appInstance.CheckApplicationInstanceCertificatesAsync(false, 0);
+        // await application.CheckApplicationInstanceCertificateAsync(false, 2048);
+
+        var server = new StandardServer();
+
+        try
+        {
+            await appInstance.StartAsync(server);
+        }
+        catch (ServiceResultException ex)
+        {
+            Console.WriteLine(ex.Message);
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine(ex.InnerException);
+            }
+        }
+
+        Console.WriteLine("Running OPC UA Server...");
 
         foreach (var endpoint in options.BaseAddresses)
         {
             Console.WriteLine($" - {endpoint}");
         }
 
-        var server = new StandardServer();
+        Console.WriteLine();
+        Console.WriteLine("Press Ctrl+C to exit...");
 
-        Console.WriteLine("Press Enter to exit...");
-        Console.ReadLine();
+        var shutdownEvent = new TaskCompletionSource<bool>();
+        Console.CancelKeyPress += (s, e) =>
+        {
+            e.Cancel = true; // prevents the default behavior - not to terminate the process immediately
+            // need a chance to do a graceful shutdown
+            shutdownEvent.SetResult(true);
+        };
+        await shutdownEvent.Task;
+
+        await appInstance.StopAsync();
 
     }
 }
