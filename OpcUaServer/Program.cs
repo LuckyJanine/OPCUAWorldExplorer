@@ -26,6 +26,8 @@ internal class Program
         {
             ApplicationName = options.ApplicationName,
             ApplicationType = ApplicationType.Server,
+            ApplicationUri = $"urn:{System.Net.Dns.GetHostName()}:{options.ApplicationName}",
+            ProductUri = $"urn:{options.ApplicationName}",
             SecurityConfiguration = new SecurityConfiguration
             {
                 ApplicationCertificate = new CertificateIdentifier
@@ -54,7 +56,25 @@ internal class Program
             },
             ServerConfiguration = new ServerConfiguration
             {
-                BaseAddresses = new StringCollection(options.BaseAddresses)
+                BaseAddresses = new StringCollection(options.BaseAddresses),
+                ServerCapabilities = new StringCollection { "DA" },
+                SecurityPolicies = new ServerSecurityPolicyCollection
+                {
+                    new ServerSecurityPolicy
+                    {
+                        SecurityMode = MessageSecurityMode.None,
+                        SecurityPolicyUri = SecurityPolicies.None
+                    }
+                },
+                DiagnosticsEnabled = true
+            },
+            TransportQuotas = new TransportQuotas
+            {
+                OperationTimeout = 5000, // 5000 ms, 5 seconds
+                MaxStringLength = 100, // 100 chars
+                MaxByteStringLength = 100, // 100 bytes
+                MaxMessageSize = 1024, // 1kb max
+                MaxArrayLength = 10 // 10 element max
             }
         };
        
@@ -69,33 +89,47 @@ internal class Program
         var appInstance = new ApplicationInstance();
         appInstance.ApplicationConfiguration = appConfig;
 
-        await appInstance.CheckApplicationInstanceCertificatesAsync(false, 0);
+        bool valid = await appInstance.CheckApplicationInstanceCertificatesAsync(false, 0);
         // await application.CheckApplicationInstanceCertificateAsync(false, 2048);
 
-        var server = new StandardServer();
+        if (!valid)
+        {
+            throw new Exception("Certificates Invalid.");
+        }
+
+        var demoServer = new OpcUaDemoServer();
+        //var server = new StandardServer();
 
         try
         {
-            await appInstance.StartAsync(server);
+            await appInstance.StartAsync(demoServer);
+
+            Console.WriteLine("Running OPC UA DemoServer...");
+
+            foreach (var endpoint in options.BaseAddresses)
+            {
+                Console.WriteLine($" - {endpoint}");
+            }
+
         }
         catch (ServiceResultException ex)
         {
             Console.WriteLine(ex.Message);
-            if (ex.InnerException != null)
+            if (ex.InnerException != null || ex.InnerResult != null)
             {
                 Console.WriteLine(ex.InnerException);
+                Console.WriteLine(ex.InnerResult.AdditionalInfo);
             }
         }
-
-        Console.WriteLine("Running OPC UA Server...");
-
-        foreach (var endpoint in options.BaseAddresses)
+        catch (Exception ex) 
         {
-            Console.WriteLine($" - {endpoint}");
+            Console.WriteLine(ex.Message);
         }
-
-        Console.WriteLine();
-        Console.WriteLine("Press Ctrl+C to exit...");
+        finally
+        {
+            Console.WriteLine();
+            Console.WriteLine("Press Ctrl+C to exit...");
+        }
 
         var shutdownEvent = new TaskCompletionSource<bool>();
         Console.CancelKeyPress += (s, e) =>

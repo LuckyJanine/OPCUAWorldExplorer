@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="bin\Debug\net9.0\DataSchema.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="bin\Debug\net9.0\appsettings.json" />
   </ItemGroup>
 
