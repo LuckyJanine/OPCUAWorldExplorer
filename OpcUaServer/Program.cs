@@ -111,6 +111,17 @@ internal class Program
                 Console.WriteLine($" - {endpoint}");
             }
 
+            Console.WriteLine("Press Ctrl+C to exit...");
+
+            var shutdownEvent = new TaskCompletionSource<bool>();
+            Console.CancelKeyPress += (s, e) =>
+            {
+                e.Cancel = true; // prevents the default behavior - not to terminate the process immediately
+                                 // need a chance to do a graceful shutdown
+                shutdownEvent.SetResult(true);
+            };
+            await shutdownEvent.Task;
+
         }
         catch (ServiceResultException ex)
         {
@@ -127,20 +138,8 @@ internal class Program
         }
         finally
         {
-            Console.WriteLine();
-            Console.WriteLine("Press Ctrl+C to exit...");
+            await appInstance.StopAsync();
+            Console.WriteLine("Shutdown Server.");
         }
-
-        var shutdownEvent = new TaskCompletionSource<bool>();
-        Console.CancelKeyPress += (s, e) =>
-        {
-            e.Cancel = true; // prevents the default behavior - not to terminate the process immediately
-            // need a chance to do a graceful shutdown
-            shutdownEvent.SetResult(true);
-        };
-        await shutdownEvent.Task;
-
-        await appInstance.StopAsync();
-
     }
 }

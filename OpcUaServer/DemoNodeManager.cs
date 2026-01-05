@@ -1,5 +1,6 @@
 ﻿using Opc.Ua;
 using Opc.Ua.Server;
+using OpcUaServer.utils;
 
 namespace OpcUaServer
 {
@@ -18,7 +19,7 @@ namespace OpcUaServer
 
         public override void CreateAddressSpace(IDictionary<NodeId, IList<IReference>> externalReferences)
         {
-            
+            var model = DataSchemaLoader.LoadDataSchemaFromFile("DataSchema.json");
         }
     }
 }
