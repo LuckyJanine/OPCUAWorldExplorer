@@ -23,11 +23,7 @@ namespace OpcUaServer.utils
 
             var model = JsonSerializer.Deserialize<OpcUaModel>(data, options);
 
-            if (model == null)
-                throw new InvalidOperationException($"Failed to deserialize model from data schema provided from\n{filePath}");
-
-            return model;
-
+            return model ?? throw new InvalidOperationException($"Failed to deserialize model from data schema provided from\n{filePath}");
         }
     }
 }
