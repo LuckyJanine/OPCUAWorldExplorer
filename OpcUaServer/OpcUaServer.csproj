@@ -9,7 +9,6 @@
 
   <ItemGroup>
     <Content Include="bin\Debug\net9.0\DataSchema.json" />
-    <Content Include="bin\Debug\net9.0\test.json" />
   </ItemGroup>
 
   <ItemGroup>
