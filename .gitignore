@@ -1,3 +1,4 @@
+# IDE
 .vs/
 
 *.userprefs
@@ -5,16 +6,24 @@
 *.user
 
 *.DS_Store
+
+# Build output
 *.exe
 *.dll
 *.pdb
-*.cache
-
 **/[Bb]in
 **/[Oo]bj
 
+# Cache directories
+*.cache
+
+
+# Environment variables
 *.binlog
 MSBuild_Logs/
 
 appsettings.*.json
 **/appsettings.json
+
+# Dependencies
+*/node_modules/
