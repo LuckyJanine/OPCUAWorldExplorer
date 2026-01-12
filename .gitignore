@@ -13,6 +13,7 @@
 *.pdb
 **/[Bb]in
 **/[Oo]bj
+*/dist
 
 # Cache directories
 *.cache
