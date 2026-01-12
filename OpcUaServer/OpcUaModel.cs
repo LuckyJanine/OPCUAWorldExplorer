@@ -1,13 +1,9 @@
 ﻿namespace OpcUaServer
 {
-    internal class OpcUaModel
-    {
-        public List<OpcUaObject> Objects { get; set; } = new();
-    }
-
     internal class OpcUaObject
     {   
-        public string Name { get; set; } = string.Empty;
+        public required uint Id { get; set; }
+        public string DisplayName { get; set; } = string.Empty;
         public List<OpcUaVariable> Variables { get; set; } = new();
     }
 
