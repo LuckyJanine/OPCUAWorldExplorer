@@ -20,11 +20,13 @@
 
 
 # Environment variables
-*.binlog
-MSBuild_Logs/
-
 appsettings.*.json
 **/appsettings.json
+*/.env
+
+
+*.binlog
+MSBuild_Logs/
 
 # Dependencies
 */node_modules/
