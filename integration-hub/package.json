@@ -17,7 +17,8 @@
     "express": "^5.2.1",
     "joi": "^18.0.2",
     "node-opcua": "^2.161.0",
-    "node-red": "^4.1.3"
+    "node-red": "^4.1.3",
+    "node-red-contrib-opcua": "^0.2.348"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
